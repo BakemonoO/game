@@ -1,28 +1,28 @@
 <template>
   <div class="app">
-  <h1>Ну шо ебать, погнали?</h1>
+  <h1>Ну что же, приступим?</h1>
   <div class="circle-block">
     <transition-group name="animation-element">
       <div class="circle-element"
         v-for="block in circleBlock"
         :key="block.id"
         @click="[swapColor(block), subAnimation(block), pickUp(block)]"
-        :class="[{ darkslateblue: block.isActive, rotateUp: block.rotate, finalyForm: block.finalStatus }, block.name ]" 
+        :class="[{ darkslateblue: block.notActive, rotateUp: block.rotate, nonTarget: block.notTarget }, block.name ]" 
         >
       </div>
     </transition-group>
   </div>
   <div class="info"
-  v-if="sortingCycle">Кручу-верчу, наебать хочу!</div>
+  v-if="sortingCycle">Кручу-верчу, обмануть хочу!</div>
   <div class="info"
-  v-else-if="gameWin">ну пиздец конечно, ты чо самый что ли?!</div>
+  v-else-if="gameWin">Поздравляю, Вы победили!</div>
   <div class="info"
-  v-else-if="gameLose">Ну пиздец конечно тупой, я в ахуе с тебя!</div>
+  v-else-if="gameLose">Ничего страшного, попробуйте еще раз!</div>
   <div class="info"
-  v-else>Жми быстрее, ебанный ты шашлык!</div>
+  v-else>Жмите!</div>
   
   <button class="btn start"
-  v-show="repeatGame === true"
+  v-show="gameLose === true || gameWin === true"
   @click="nextTry"
   >Next try</button>
 
@@ -41,25 +41,24 @@
       data() {
         return {
           circleBlock: [
-            {id: Math.ceil(Math.random() * 1000), name: 'red', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'yellow', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'green', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'pink', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'blue', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'white', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'red', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'yellow', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'green', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'pink', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'blue', isActive: true, rotate: false, finalStatus: false },
-            {id: Math.ceil(Math.random() * 1000), name: 'white', isActive: true, rotate: false, finalStatus: false }
+            {id: Math.ceil(Math.random() * 1000), name: 'red', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'yellow', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'green', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'pink', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'blue', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'white', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'red', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'yellow', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'green', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'pink', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'blue', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 1000), name: 'white', notActive: true, rotate: false, notTarget: true }
             
           ],
           limitCounter: 10,
           cacheCombo: [],
           finishLine: [],
           inGame: false,
-          repeatGame: false,
           sortingCycle: false,
           gameLose: false,
           gameWin: false
@@ -68,21 +67,17 @@
       methods: {
         
         swapColor(block) {
-          block.isActive === false ? block.isActive = true : block.isActive = false
+          block.notActive === false ? block.notActive = true : block.notActive = false
         },
 
         pickUp(block) {
+          block.notTarget = true
           this.cacheCombo.push(block)
           if (this.cacheCombo.length == 2) {
             if(this.cacheCombo[0].name === this.cacheCombo[1].name) {
               this.finishLine.push(this.cacheCombo)
-              for (let i = 0; i < 2; ++i) {
-                let result = this.circleBlock[this.circleBlock.findIndex(x =>  x.id === this.cacheCombo[i].id )]
-                result.finalStatus = true
                 if (this.finishLine.length === 6) {
                   this.gameWin = true
-                  this.repeatGame = true
-                }
               } 
               this.cacheCombo = []
             } else {
@@ -90,14 +85,15 @@
                 let result = this.circleBlock[this.circleBlock.findIndex(x =>  x.id === this.cacheCombo[i].id )]
                 setTimeout(() => {
                   result.rotate = true
-                  result.isActive = true
+                  result.notActive = true
+                  result.notTarget = false
                 }, 1000); 
               } 
               this.cacheCombo = []
               this.limitCounter--
               if (this.limitCounter === 0) {
                 this.gameLose = true
-                this.circleBlock.map(x => x.finalStatus = true)
+                this.circleBlock.map(x => x.notTarget = true)
               }
             } 
           }
@@ -128,14 +124,14 @@
         },
   
         cycleAnimation(){
-          this.circleBlock.map(a => a.isActive = false)
+          this.circleBlock.map(a => a.notActive = false)
           this.circleBlock.map(a => a.rotate = true)
           setTimeout(() => {
             this.circleBlock.map(a => a.rotate = false)
           }, 1000);
           
           setTimeout(() => {
-            this.circleBlock.map(a => a.isActive = true)
+            this.circleBlock.map(a => a.notActive = true)
             this.circleBlock.map(a => a.rotate = true)
             setTimeout(() => {
               this.circleBlock.map(a => a.rotate = false)
@@ -164,6 +160,7 @@
                         this.sortIdDown()
                         setTimeout(() => {
                           this.sortingCycle = false
+                          this.circleBlock.map(x => x.notTarget = false)
                         }, 1500);
                       }, 2000);
                     }, 1500);
@@ -178,10 +175,9 @@
           this.gameLose = false
           this.gameWin = false
           this.finishLine = []
-          this.repeatGame = false
           this.limitCounter = 10
           this.circleBlock.map(x => x.id = Math.ceil(Math.random() * 1000))
-          this.circleBlock.map(x => x.finalStatus = false)
+          this.circleBlock.map(x => x.notTarget = false)
           this.startGame()
         },
         
@@ -214,7 +210,6 @@
   
   h1 {
     font-size: 50px;
-    /* text-align: center; */
     padding: 30px;
   }
   
@@ -304,27 +299,8 @@
     margin-top: 40px;
   }
 
-  .finalyForm {
+  .nonTarget {
     pointer-events: none;
   }
   
-  /* .circle-element:hover {
-    animation-name: color-circle;
-    animation-duration: 3s;
-  }
-  
-  @keyframes color-circle {
-    0% {
-    }
-    25% {
-  
-    }
-    50% {
-  
-    }
-    100% {
-      transform: rotateY(180deg);
-      background-color: red;
-    }
-  } */
   </style>
