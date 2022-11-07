@@ -6,14 +6,14 @@
       <div class="circle-element"
         v-for="block in circleBlock"
         :key="block.id"
-        @click="[swapColor(block), subAnimation(block), pickUp(block)]"
-        :class="[{ darkslateblue: block.notActive, rotateUp: block.rotate, nonTarget: block.notTarget }, block.name ]" 
+        @click="picked(block)"
+        :class="[block.notActive ? 'darkslateblue' : block.name, { nonTarget: sortingCycle || gameLose || gameWin }]" 
         >
       </div>
     </transition-group>
   </div>
   <div class="info"
-  v-if="sortingCycle">Кручу-верчу, обмануть хочу!</div>
+  v-if="!start && sortingCycle">Кручу-верчу, обмануть хочу!</div>
   <div class="info"
   v-else-if="gameWin">Поздравляю, Вы победили!</div>
   <div class="info"
@@ -26,9 +26,8 @@
   @click="nextTry"
   >Next try</button>
 
-
   <button class="btn start"
-  v-show="inGame === false"
+  v-show="start"
   @click="startGame"
   >Start</button>
   </div>
@@ -41,65 +40,93 @@
       data() {
         return {
           circleBlock: [
-            {id: Math.ceil(Math.random() * 1000), name: 'red', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'yellow', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'green', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'pink', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'blue', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'white', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'red', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'yellow', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'green', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'pink', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'blue', notActive: true, rotate: false, notTarget: true },
-            {id: Math.ceil(Math.random() * 1000), name: 'white', notActive: true, rotate: false, notTarget: true }
+            {id: Math.ceil(Math.random() * 10000), name: 'red', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'yellow', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'green', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'pink', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'blue', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'white', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'red', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'yellow', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'green', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'pink', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'blue', notActive: true, rotate: false, notTarget: true },
+            {id: Math.ceil(Math.random() * 10000), name: 'white', notActive: true, rotate: false, notTarget: true }
             
           ],
           limitCounter: 10,
           cacheCombo: [],
-          finishLine: [],
+          winCombo: [],
+          start: true,
           inGame: false,
-          sortingCycle: false,
+          sortingCycle: true,
           gameLose: false,
           gameWin: false
         }
       },
       methods: {
         
-        swapColor(block) {
+        picked(block) {
           block.notActive === false ? block.notActive = true : block.notActive = false
-        },
-
-        pickUp(block) {
-          block.notTarget = true
           this.cacheCombo.push(block)
-          if (this.cacheCombo.length == 2) {
-            if(this.cacheCombo[0].name === this.cacheCombo[1].name) {
-              this.finishLine.push(this.cacheCombo)
-                if (this.finishLine.length === 6) {
-                  this.gameWin = true
-              } 
+          if (this.cacheCombo.length === 2) {
+            if (this.cacheCombo[0].name === this.cacheCombo[1].name) {
+              this.winCombo.push(this.cacheCombo)
               this.cacheCombo = []
+              if (this.winCombo.length === 6) {
+                this.gameWin = true
+              }
             } else {
-              for (let i = 0; i < 2; ++i) {
-                let result = this.circleBlock[this.circleBlock.findIndex(x =>  x.id === this.cacheCombo[i].id )]
-                setTimeout(() => {
-                  result.rotate = true
-                  result.notActive = true
-                  result.notTarget = false
-                }, 1000); 
-              } 
+              for (let i = 0; i < 2; i++) {
+              let result = this.circleBlock[this.circleBlock.findIndex(x => x.id === this.cacheCombo[i].id)]
+              setTimeout(() => {
+                result.notActive = true
+              }, 1500);
+            }
+                this.limitCounter--
               this.cacheCombo = []
-              this.limitCounter--
+
               if (this.limitCounter === 0) {
                 this.gameLose = true
-                this.circleBlock.map(x => x.notTarget = true)
               }
-            } 
+            }
           }
-
         },
-      
+
+        cycleAnimation(callback) {
+          this.circleBlock.map(x => x.notActive = false)
+          setTimeout(() => {
+            this.circleBlock.map(x => x.notActive = true)
+            setTimeout(() => {
+              callback()
+            }, 1000);
+          }, 1500);
+        },
+
+        startGame() {
+          this.inGame = true
+          this.start = false
+          this.cycleAnimation(this.sortNameUp)
+          setTimeout(() => {
+            this.cycleAnimation(this.sortIdUp)
+            setTimeout(() => {
+              this.sortingCycle = false
+            }, 4000);
+          }, 4000);
+          
+        },
+
+        nextTry() {
+          this.gameLose = false
+          this.gameWin = false
+          this.finishLine = []
+          this.limitCounter = 10
+          this.circleBlock.map(x => x.id = Math.ceil(Math.random() * 1000))
+          setTimeout(() => {
+            this.startGame()
+          }, 1000);
+        },
+
          sortIdUp() {
           this.circleBlock.sort((a,b) => a.id - b.id)
         },
@@ -116,71 +143,6 @@
           this.circleBlock.sort((a,b) => a.name > b.name ? -1 : a.name < b.name ? 1 : 0)
         },
   
-        subAnimation(block) {
-          block.rotate = true
-          setTimeout(() => {
-            block.rotate = false
-          }, 1000);
-        },
-  
-        cycleAnimation(){
-          this.circleBlock.map(a => a.notActive = false)
-          this.circleBlock.map(a => a.rotate = true)
-          setTimeout(() => {
-            this.circleBlock.map(a => a.rotate = false)
-          }, 1000);
-          
-          setTimeout(() => {
-            this.circleBlock.map(a => a.notActive = true)
-            this.circleBlock.map(a => a.rotate = true)
-            setTimeout(() => {
-              this.circleBlock.map(a => a.rotate = false)
-            }, 1000);
-          }, 1000);
-        },
-  
-        startGame() {
-          this.sortingCycle = true
-          this.cycleAnimation()
-          this.inGame = true
-  
-          setTimeout(() => {
-            this.sortNameUp()
-            setTimeout(() => {
-              this.cycleAnimation()
-              setTimeout(() => {
-                this.sortIdUp()
-                setTimeout(() => {
-                  this.cycleAnimation()
-                  setTimeout(() => {
-                    this.sortNameDown()
-                    setTimeout(() => {
-                      this.cycleAnimation()
-                      setTimeout(() => {
-                        this.sortIdDown()
-                        setTimeout(() => {
-                          this.sortingCycle = false
-                          this.circleBlock.map(x => x.notTarget = false)
-                        }, 1500);
-                      }, 2000);
-                    }, 1500);
-                  }, 2000);
-                }, 1500);
-              }, 2000);
-            }, 1500);
-          }, 2000);
-        },
-        
-        nextTry() {
-          this.gameLose = false
-          this.gameWin = false
-          this.finishLine = []
-          this.limitCounter = 10
-          this.circleBlock.map(x => x.id = Math.ceil(Math.random() * 1000))
-          this.circleBlock.map(x => x.notTarget = false)
-          this.startGame()
-        },
-        
       },
   
       computed: {
@@ -256,41 +218,63 @@
   
   .red {
     background-color: red;
+    animation: circle_rotate 1s;
+    pointer-events: none;
   }
   
   .yellow {
     background-color: yellow;
+    animation: circle_rotate 1s;
+    pointer-events: none;
   }
   
   .blue {
     background-color: blue;
+    animation: circle_rotate 1s;
+    pointer-events: none;
   }
   
   .white {
     background-color: white;
+    animation: circle_rotate 1s;
+    pointer-events: none;
   }
   
   .green {
     background-color: green;
+    animation: circle_rotate 1s;
+    pointer-events: none;
   }
   
   .pink {
     background-color: pink;
+    animation: circle_rotate 1s;
+    pointer-events: none;
   }
   
   .darkslateblue {
     background-color: darkslateblue;
+    transform: rotateY(-180deg);
+    transition-duration: 1s;
   }
   
   .animation-element-move {
     transition: transform 1s ease-out;
   }
   
-  .rotateUp {
+  @keyframes circle_rotate {
+  0% {
+    background: darkslateblue;
+  }
+  25% {
+    background: darkslateblue;
+  }
+  100% {
     transform: rotateY(180deg);
-    transition-duration: 1s;
   }
   
+}
+
   .info {
     font-size: 30px;
     font-weight: 900;
